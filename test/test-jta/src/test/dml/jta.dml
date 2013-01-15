@@ -1,0 +1,8 @@
+package pt.ist.fenixframework.test.jta;
+
+class Application { }
+
+relation DomainRootHasApplication {
+	.pt.ist.fenixframework.DomainRoot playsRole domainRoot;
+	Application playsRole application;
+}
