@@ -6,6 +6,7 @@ import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
+import javax.transaction.Status;
 import javax.transaction.SystemException;
 
 import pt.ist.fenixframework.CommitListener;
@@ -79,6 +80,9 @@ public abstract class AbstractTransactionManager implements TransactionManager {
      */
     @Override
     public int getStatus() throws SystemException {
+	if (this.getTransaction() == null)
+	    return Status.STATUS_NO_TRANSACTION;
+
 	return this.getTransaction().getStatus();
     }
 
