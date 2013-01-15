@@ -13,19 +13,35 @@ import javax.transaction.RollbackException;
 import javax.transaction.Status;
 import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
+@RunWith(JUnit4.class)
 public class JTATest {
 
     private static final Logger logger = LoggerFactory.getLogger(JTATest.class);
+
+    private TransactionManager transactionManager;
+
+    /*
+     * Setups
+     */
+
+    @Before
+    public void setTxManager() {
+	transactionManager = FenixFramework.getTransactionManager();
+    }
 
     @Atomic
     @BeforeClass
@@ -34,39 +50,60 @@ public class JTATest {
 	FenixFramework.getDomainRoot().setApplication(application);
     }
 
-    @Test
-    @Atomic
-    public void testApplicationExists() {
-	assertThat(FenixFramework.getDomainRoot().getApplication(), notNullValue());
+    @AfterClass
+    public static void shutdownFenixFramework() {
+	FenixFramework.shutdown();
     }
+
+    /*
+     * Status checking tests
+     */
 
     @Test
     @Atomic
     public void atomicShouldHaveTransationStatusActive() throws SystemException {
-	assertThat(FenixFramework.getTransaction().getStatus(), is(Status.STATUS_ACTIVE));
+	assertThat(transactionManager.getTransaction(), notNullValue());
+	assertThat(transactionManager.getStatus(), is(Status.STATUS_ACTIVE));
     }
 
     @Test
     public void shouldHaveActiveStateOnTxManagerBegin() throws NotSupportedException, SystemException {
-	FenixFramework.getTransactionManager().begin();
+	transactionManager.begin();
 
 	try {
-	    assertThat(FenixFramework.getTransaction().getStatus(), is(Status.STATUS_ACTIVE));
+	    assertThat(transactionManager.getTransaction(), notNullValue());
+	    assertThat(transactionManager.getStatus(), is(Status.STATUS_ACTIVE));
 	} finally {
-	    FenixFramework.getTransactionManager().rollback();
+	    transactionManager.rollback();
 	}
     }
 
     @Test
     /* @Atomic not present! */
     public void shouldBeInactiveOrUnknownStatus() throws SystemException {
-	int status = FenixFramework.getTransactionManager().getStatus();
+	int status = transactionManager.getStatus();
 
 	if (status != Status.STATUS_NO_TRANSACTION && status != Status.STATUS_UNKNOWN) {
 	    logger.error("Status is {}", status);
 	    fail();
 	}
     }
+
+    @Test(expected = RollbackException.class)
+    public void statusShouldBeMarkedRollBack() throws NotSupportedException, SystemException, SecurityException,
+	    IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
+	transactionManager.begin();
+
+	transactionManager.getTransaction().setRollbackOnly();
+
+	assertThat(transactionManager.getTransaction().getStatus(), is(Status.STATUS_MARKED_ROLLBACK));
+
+	transactionManager.commit();
+    }
+
+    /*
+     * SynchronizationTests
+     */
 
     private static class Data {
 	public boolean runBefore = false;
@@ -79,9 +116,9 @@ public class JTATest {
 
 	final Data data = new Data();
 
-	FenixFramework.getTransactionManager().begin();
+	transactionManager.begin();
 
-	FenixFramework.getTransaction().registerSynchronization(new Synchronization() {
+	transactionManager.getTransaction().registerSynchronization(new Synchronization() {
 
 	    @Override
 	    public void beforeCompletion() {
@@ -96,15 +133,20 @@ public class JTATest {
 	    }
 	});
 
-	FenixFramework.getTransactionManager().commit();
+	transactionManager.commit();
 
 	assertThat(data.runBefore, is(true));
 	assertThat(data.status, is(not(-1)));
     }
 
-    @AfterClass
-    public static void shutdownFenixFramework() {
-	FenixFramework.shutdown();
+    /*
+     * Exceptions
+     */
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionOnCommittingAnEmptyTransaction() throws SecurityException, IllegalStateException,
+	    RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
+	transactionManager.commit();
     }
 
 }
