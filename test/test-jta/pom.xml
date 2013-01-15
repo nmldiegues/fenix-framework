@@ -14,6 +14,10 @@
     <packaging>jar</packaging>
 
     <name>Fenix Framework Tests for JTA Compliance</name>
+    
+    <properties>
+    	<codeGeneratorClassName>pt.ist.fenixframework.backend.mem.MemCodeGenerator</codeGeneratorClassName>
+    </properties>
 
     <build>
         <plugins>
@@ -22,9 +26,7 @@
                 <artifactId>dml-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <!-- use infinispan backend for running tests -->
-                    <codeGeneratorClassName>pt.ist.fenixframework.backend.mem.MemCodeGenerator</codeGeneratorClassName>
-                    <!--<codeGeneratorClassName>pt.ist.fenixframework.backend.ogm.OgmCodeGenerator</codeGeneratorClassName>-->
+                    <codeGeneratorClassName>${codeGeneratorClassName}</codeGeneratorClassName>
                 </configuration>
                 <executions>
                     <execution>
@@ -80,6 +82,10 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-mem</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-infinispan</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
