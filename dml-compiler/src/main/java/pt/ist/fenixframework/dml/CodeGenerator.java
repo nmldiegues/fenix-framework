@@ -60,7 +60,7 @@ public abstract class CodeGenerator {
 			compArgs.packageName);
 	String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
 	if (collectionName == null || collectionName.isEmpty()) {
-	    this.collectionToUse = "java.util.HashSet";
+	    this.collectionToUse = "pt.ist.fenixframework.adt.bplustree.BPlusTree";
 	} else {
 	    this.collectionToUse = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
 	}
