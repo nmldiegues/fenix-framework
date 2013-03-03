@@ -103,6 +103,16 @@ public class InfinispanTransactionManager implements TransactionManager {
 	    throw new RuntimeException(e);
 	}
     }
+    
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command, Atomic atomic) {
+    try {
+        return withTransaction(command, atomic);
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+    }
+
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {

@@ -37,6 +37,8 @@ public interface TransactionManager extends javax.transaction.TransactionManager
      *            The command to execute.
      */
     public <T> T withTransaction(CallableWithoutException<T> command);
+    
+    public <T> T withTransaction(CallableWithoutException<T> command, Atomic atomic);
 
     /**
      * Transactionally execute a command, possibly returning a result.

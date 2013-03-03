@@ -45,6 +45,29 @@ public class MemTransactionManager extends AbstractTransactionManager {
 	    throw new RuntimeException(e);
 	}
     }
+    
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command, Atomic atomic) {
+    if (transaction != null)
+        return command.call();
+
+    try {
+        T ret = null;
+        begin();
+        ret = command.call();
+        commit();
+        return ret;
+    } catch (RuntimeException e) {
+        try {
+        rollback();
+        } catch (Exception ex) {
+        throw new RuntimeException(ex);
+        }
+        throw e;
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+    }
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {

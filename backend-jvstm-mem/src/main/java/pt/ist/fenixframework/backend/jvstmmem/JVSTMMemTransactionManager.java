@@ -119,6 +119,16 @@ public class JVSTMMemTransactionManager implements TransactionManager {
 	jvstm.Transaction.commit();
 	return res;
     }
+    
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command, Atomic atomic) {
+    jvstm.Transaction.beginInevitable();
+    currentJPATx.set(new JVSTMMemTransaction());
+    T res = command.call();
+    jvstm.Transaction.commit();
+    return res;
+    }
+
 
     @Override
     public void addCommitListener(CommitListener listener) {}
