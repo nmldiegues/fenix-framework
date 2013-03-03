@@ -44,9 +44,12 @@ public class InfinispanTransactionManager implements TransactionManager {
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
 	if (readOnly) {
 	    logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
-	}
+	} 
 	logger.trace("Begin transaction");
 	delegateTxManager.begin();
+	if (!readOnly) {
+	    InfinispanBackEnd.getInstance().domainCache.markAsWriteTransaction();
+	}
     }
 
     @Override
@@ -120,7 +123,11 @@ public class InfinispanTransactionManager implements TransactionManager {
 		// transaction
 		if (getTransaction() == null) {
 		    logger.trace("No previous transaction.  Will begin a new one.");
-		    begin();
+		    if (atomic != null) {
+		        begin(atomic.readOnly());
+		    } else {
+		        begin();
+		    }
 		    inTopLevelTransaction = true;
 		} else {
 		    logger.trace("Already inside a transaction. Not nesting.");
