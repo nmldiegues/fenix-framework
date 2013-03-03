@@ -143,7 +143,7 @@ public class OgmTransactionManager implements TransactionManager {
     @Override
     public <T> T withTransaction(CallableWithoutException<T> command, Atomic atomic) {
         try {
-            return withTransaction(command, atomic);
+            return withTransaction((Callable<T>)command, atomic);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
